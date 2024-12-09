@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat with ChatGPT</title>
+
+  <!-- Include marked.js and highlight.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+</head>
+
+<body>
+  <h1>Chat with ChatGPT</h1>
+
+  <div id="chat-box"></div>
+
+  <input type="text" id="message-input" placeholder="Type your message here" />
+  <button id="send-btn">Send</button>
+  <button id="export-btn">Export</button>
+
+  <div id="thinking-message" class="thinking" style="display:none;">Thinking...</div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>

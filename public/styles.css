@@ -1,0 +1,86 @@
+body {
+  flex: 1;
+  margin: 0;
+  padding-left: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+}
+
+h1 {
+  margin: 20px 0;
+  text-align: center;
+}
+
+#chat-box {
+  width: 90%;
+  height: 600px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  overflow-y: scroll;
+  background-color: white;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+
+#message-input {
+  width: 80%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+button {
+  padding: 10px 15px;
+  margin-left: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background-color: #007bff;
+  color: white;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.message {
+  margin-bottom: 10px;
+}
+
+.user-message {
+  font-weight: bold;
+  font-size: 18px;
+  color: #cf0e0e;
+}
+
+.chatgpt-message {
+  font-weight: bold;
+  font-size: 18px;
+  color: #3f59ef;
+}
+
+.code-block {
+  background-color: #282c34;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin-top: 5px;
+}
+
+.explanation {
+  font-style: italic;
+  color: #555;
+  margin-top: 10px;
+}
+
+.reply {
+  margin-left: 20px;
+}
+
+.thinking {
+  font-style: italic;
+  color: #007bff;
+  text-align: center;
+  margin-top: 10px;
+}

@@ -1,0 +1,35 @@
+# Node.js dependencies
+node_modules/
+
+# Log files
+*.log
+
+# Dependency directories
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build directories
+dist/
+build/
+
+# IDE/Editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# .env file for environment variables (if applicable)
+.env
+
+# Package lock files (optional, if you're using a different package manager like yarn)
+package-lock.json
+yarn.lock
+
+# Other possible files to ignore
+*.bak
+*.tmp

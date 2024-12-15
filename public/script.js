@@ -5,16 +5,20 @@ const messageInput = document.getElementById("message-input");
 const sendBtn = document.getElementById("send-btn");
 const exportBtn = document.getElementById("export-btn"); // Reference to the Export button
 const thinkingMessage = document.getElementById("thinking-message");
+const items = document.querySelectorAll(".conversation-item");
+let params = new URLSearchParams(window.location.search);
 
 // Function to display the chat messages
 function displayMessage(message, sender) {
   const messageDiv = document.createElement("div");
   messageDiv.classList.add("message");
+
   const senderSpan = document.createElement("span");
   senderSpan.classList.add(sender === "You" ? "user-message" : "chatgpt-message");
   senderSpan.textContent = `${sender}: `;
+
   const messageText = document.createElement("span");
-  messageText.innerHTML = sender === "You" ? `<p>${message}</p>` : message;
+  messageText.innerHTML = formatCode(message); // Always format the message
 
   messageDiv.appendChild(senderSpan);
   messageDiv.appendChild(messageText);
@@ -23,13 +27,13 @@ function displayMessage(message, sender) {
 }
 
 // Function to format and highlight code replies
-function formatCode(reply) {
-  // Parse the markdown content with marked.js
-  const html = marked.parse(reply);
-  // Highlight the code using highlight.js
-  document.querySelectorAll("pre code").forEach((block) => {
-    hljs.highlightElement(block);
-  });
+function formatCode(content) {
+  const html = marked.parse(content); // Parse markdown to HTML
+  setTimeout(() => {
+    document.querySelectorAll("pre code").forEach((block) => {
+      hljs.highlightElement(block); // Highlight code blocks
+    });
+  }, 0); // Delay to ensure elements are in the DOM
   return html;
 }
 
@@ -39,17 +43,12 @@ sendBtn.addEventListener("click", async () => {
 
   if (!userMessage) return;
 
-  // Display the user's message
-  displayMessage(userMessage, "You");
+  const conversationName = document.querySelector(".conversation-item.active")?.dataset.chatSession || "default-session";
 
-  // Add user's message to conversation history
-  conversationHistory.push({ role: "user", content: userMessage });
-
-  // Show "Thinking..." message
-  thinkingMessage.style.display = "block";
-
-  // Clear the input field
-  messageInput.value = "";
+  displayMessage(userMessage, "You"); // Display the user's message
+  conversationHistory.push({ role: "user", content: userMessage }); // Add user's message to conversation history
+  thinkingMessage.style.display = "block"; // Show "Thinking..." message
+  messageInput.value = ""; // Clear the input field
 
   try {
     // Send the message to the backend (which calls OpenAI)
@@ -58,18 +57,15 @@ sendBtn.addEventListener("click", async () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ conversationHistory }),
+      body: JSON.stringify({ conversationName, conversationHistory }),
     });
 
     const data = await response.json();
-
-    // Hide the "Thinking..." message
-    thinkingMessage.style.display = "none";
+    thinkingMessage.style.display = "none"; // Hide the "Thinking..." message
 
     // Format and display the response from ChatGPT
     if (data.reply) {
-      const formattedReply = formatCode(data.reply); // Format any code blocks
-      displayMessage(formattedReply, "ChatGPT");
+      displayMessage(data.reply, "ChatGPT");
       conversationHistory.push({ role: "assistant", content: data.reply });
     } else {
       displayMessage("Sorry, something went wrong.", "ChatGPT");
@@ -110,3 +106,56 @@ messageInput.addEventListener("keydown", (e) => {
 //   link.download = "chat_log.txt"; // Name of the file to download
 //   link.click();
 // });
+
+// Handle conversation item clicks
+items.forEach((item) => {
+  item.addEventListener("click", () => {
+    const selectedSession = item.dataset.chatSession;
+    params.set("conversation", selectedSession);
+
+    // Remove active class from all items
+    items.forEach((el) => el.classList.remove("active"));
+    // Add active class to the clicked item
+    item.classList.add("active");
+
+    loadConversationFromDB(selectedSession);
+  });
+});
+
+async function saveConversationToDB(conversationName) {
+  try {
+    await fetch("/api/conversations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: conversationName, messages: conversationHistory }),
+    });
+  } catch (error) {
+    console.error("Error saving conversation:", error);
+  }
+}
+
+async function loadConversationFromDB(name) {
+  chatBox.innerHTML = "";
+
+  try {
+    const response = await fetch(`/api/conversations/${name}`);
+    if (response.ok) {
+      conversationHistory = await response.json();
+      // chatBox.innerHTML = ""; // Clear current conversation
+
+      conversationHistory.forEach((message) => {
+        const formattedContent = message.role === "assistant" ? formatCode(message.content) : message.content;
+        displayMessage(formattedContent, message.role === "user" ? "You" : "ChatGPT");
+      });
+    } else {
+      displayMessage("No saved conversation found.", "ChatGPT");
+    }
+  } catch (error) {
+    console.error("Error loading conversation:", error);
+  }
+}
+
+// Call this when the page loads
+window.addEventListener("load", () => {
+  loadConversationFromDB("session-1"); // Replace 'session-1' with your session identifier
+});

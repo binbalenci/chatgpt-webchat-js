@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { OpenAI } from "openai";
 import path from "path";
 import ConversationModel from "./models/ConversationModel.js";
+import MessageModel from "./models/MessageModel.js";
 
 // Load environment variables from the .env file
 config();
@@ -24,7 +25,7 @@ const mongo_db_connect = async () => {
 const app = express();
 const port = 3000;
 
-// Connect to OpenAI
+// OpenAPI setup
 const openai = new OpenAI({
   apiKey: process.env.API_KEY,
 });
@@ -33,17 +34,37 @@ const openai = new OpenAI({
 app.use(express.static("public"));
 app.use(express.json());
 
-// Endpoint to handle user input and interact with ChatGPT
+// Handle user input and get ChatGPT response
 app.post("/api/chat", async (req, res) => {
-  const { conversationHistory } = req.body;
+  const { conversationName, conversationHistory } = req.body;
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // or use 'gpt-3.5-turbo' based on your requirement
+      model: "gpt-4o-mini",
       messages: conversationHistory,
     });
 
-    res.json({ reply: response.choices[0].message.content });
+    const replyContent = response.choices[0].message.content;
+
+    // Save the user's message
+    const userMessage = new MessageModel({ role: "user", content: conversationHistory.at(-1).content });
+    await userMessage.save();
+
+    // Save the assistant's reply
+    const assistantMessage = new MessageModel({ role: "assistant", content: replyContent });
+    await assistantMessage.save();
+
+    // Find or create the conversation
+    let conversation = await ConversationModel.findOne({ name: conversationName });
+    if (!conversation) {
+      conversation = new ConversationModel({ name: conversationName, messages: [] });
+    }
+
+    // Add message references to the conversation
+    conversation.messages.push(userMessage._id, assistantMessage._id);
+    await conversation.save();
+
+    res.json({ reply: replyContent });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Failed to get response from ChatGPT" });
@@ -55,12 +76,12 @@ app.post("/api/conversations", async (req, res) => {
   const { name, messages } = req.body;
 
   try {
-    let conversation = await Conversation.findOne({ name });
+    let conversation = await ConversationModel.findOne({ name });
 
     if (conversation) {
       conversation.messages = messages;
     } else {
-      conversation = new Conversation({ name, messages });
+      conversation = new ConversationModel({ name, messages });
     }
 
     await conversation.save();
@@ -74,7 +95,7 @@ app.post("/api/conversations", async (req, res) => {
 // Fetch a conversation by name
 app.get("/api/conversations/:name", async (req, res) => {
   try {
-    const conversation = await Conversation.findOne({ name });
+    const conversation = await ConversationModel.findOne({ name: req.params.name }).populate("messages");
     if (conversation) {
       res.json(conversation.messages);
     } else {

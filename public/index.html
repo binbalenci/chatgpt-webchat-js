@@ -13,13 +13,25 @@
 </head>
 
 <body>
-  <h1>Chat with ChatGPT</h1>
+  <h1>ChatChatGPT by Benjamin</h1>
 
-  <div id="chat-box"></div>
+  <div id="chat-container">
+    <div id="chat-box"></div>
+    <div id="conversation-box">
+      <p class="conversation-title">Conversations</p>
+      <ul class="conversation-list">
+        <li class="conversation-item">Session 1</li>
+        <li class="conversation-item">Session 2</li>
+        <li class="conversation-item">Session 3</li>
+      </ul>
+    </div>
+  </div>
 
-  <input type="text" id="message-input" placeholder="Type your message here" />
-  <button id="send-btn">Send</button>
-  <button id="export-btn">Export</button>
+  <div id="input-box">
+    <textarea type="text" id="message-input" placeholder="Type your message here"></textarea>
+    <button id="send-btn">Send</button>
+  </div>
+  <!-- <button id="export-btn">Export</button> -->
 
   <div id="thinking-message" class="thinking" style="display:none;">Thinking...</div>
 

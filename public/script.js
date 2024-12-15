@@ -1,3 +1,5 @@
+let conversationHistory = [{ role: "system", content: "You are a helpful assistant who answers questions about programming and web development and machine learning." }];
+
 const chatBox = document.getElementById("chat-box");
 const messageInput = document.getElementById("message-input");
 const sendBtn = document.getElementById("send-btn");
@@ -40,6 +42,9 @@ sendBtn.addEventListener("click", async () => {
   // Display the user's message
   displayMessage(userMessage, "You");
 
+  // Add user's message to conversation history
+  conversationHistory.push({ role: "user", content: userMessage });
+
   // Show "Thinking..." message
   thinkingMessage.style.display = "block";
 
@@ -53,7 +58,7 @@ sendBtn.addEventListener("click", async () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ userMessage }),
+      body: JSON.stringify({ conversationHistory }),
     });
 
     const data = await response.json();
@@ -65,6 +70,7 @@ sendBtn.addEventListener("click", async () => {
     if (data.reply) {
       const formattedReply = formatCode(data.reply); // Format any code blocks
       displayMessage(formattedReply, "ChatGPT");
+      conversationHistory.push({ role: "assistant", content: data.reply });
     } else {
       displayMessage("Sorry, something went wrong.", "ChatGPT");
     }
@@ -77,30 +83,30 @@ sendBtn.addEventListener("click", async () => {
 
 // Handle Enter key press to send message
 messageInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
+  if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault(); // Prevent the default action (new line)
     sendBtn.click(); // Trigger the send button click
   }
 });
 
 // Function to export chat log to a .txt file
-exportBtn.addEventListener("click", () => {
-  let chatLog = "";
+// exportBtn.addEventListener("click", () => {
+//   let chatLog = "";
 
-  // Loop through all messages and add to the chat log
-  const messages = document.querySelectorAll(".message");
-  messages.forEach((message) => {
-    const sender = message.querySelector("span").textContent;
-    const messageText = message.querySelector("span + span").textContent;
-    chatLog += `${sender}: ${messageText}\n\n`;
-  });
+//   // Loop through all messages and add to the chat log
+//   const messages = document.querySelectorAll(".message");
+//   messages.forEach((message) => {
+//     const sender = message.querySelector("span").textContent;
+//     const messageText = message.querySelector("span + span").textContent;
+//     chatLog += `${sender}: ${messageText}\n\n`;
+//   });
 
-  // Create a Blob object from the chat log text
-  const blob = new Blob([chatLog], { type: "text/plain" });
+//   // Create a Blob object from the chat log text
+//   const blob = new Blob([chatLog], { type: "text/plain" });
 
-  // Create a link element and trigger a download
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "chat_log.txt"; // Name of the file to download
-  link.click();
-});
+//   // Create a link element and trigger a download
+//   const link = document.createElement("a");
+//   link.href = URL.createObjectURL(blob);
+//   link.download = "chat_log.txt"; // Name of the file to download
+//   link.click();
+// });

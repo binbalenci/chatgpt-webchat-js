@@ -9,7 +9,24 @@ const items = document.querySelectorAll(".conversation-item");
 let params = new URLSearchParams(window.location.search);
 
 // Function to display the chat messages
-function displayMessage(message, sender) {
+// function displayMessage(message, sender) {
+//   const messageDiv = document.createElement("div");
+//   messageDiv.classList.add("message");
+
+//   const senderSpan = document.createElement("span");
+//   senderSpan.classList.add(sender === "You" ? "user-message" : "chatgpt-message");
+//   senderSpan.textContent = `${sender}: `;
+
+//   const messageText = document.createElement("span");
+//   messageText.innerHTML = formatCode(message); // Always format the message
+
+//   messageDiv.appendChild(senderSpan);
+//   messageDiv.appendChild(messageText);
+//   chatBox.appendChild(messageDiv);
+//   chatBox.scrollTop = chatBox.scrollHeight; // Auto scroll to the bottom
+// }
+
+function displayMessage(message, sender, typeEffect = false) {
   const messageDiv = document.createElement("div");
   messageDiv.classList.add("message");
 
@@ -18,23 +35,44 @@ function displayMessage(message, sender) {
   senderSpan.textContent = `${sender}: `;
 
   const messageText = document.createElement("span");
-  messageText.innerHTML = formatCode(message); // Always format the message
-
   messageDiv.appendChild(senderSpan);
   messageDiv.appendChild(messageText);
   chatBox.appendChild(messageDiv);
-  chatBox.scrollTop = chatBox.scrollHeight; // Auto scroll to the bottom
+
+  if (typeEffect) {
+    // Initialize Typed.js with the message
+    new Typed(messageText, {
+      strings: [formatCode(message)], // Message to type
+      typeSpeed: 0, // Speed of typing (ms per character)
+      backSpeed: 0, // Speed of backspacing (optional)
+      backDelay: 50, // Delay before starting to delete (optional)
+      showCursor: false, // Hide the cursor (optional)
+      onTyping: function () {
+        chatBox.scrollTop = chatBox.scrollHeight; // Keep scrolling down while typing
+      },
+      onComplete: function () {
+        chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom after typing is complete
+        highlightCode(messageText); // Apply syntax highlighting after typing
+      },
+    });
+  } else {
+    messageText.innerHTML = formatCode(message);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    highlightCode(messageText); // Apply syntax highlighting
+  }
 }
 
-// Function to format and highlight code replies
 function formatCode(content) {
-  const html = marked.parse(content); // Parse markdown to HTML
+  return marked.parse(content); // Parse markdown to HTML
+}
+
+function highlightCode(element) {
+  // Delay to ensure elements are in the DOM
   setTimeout(() => {
-    document.querySelectorAll("pre code").forEach((block) => {
-      hljs.highlightElement(block); // Highlight code blocks
+    element.querySelectorAll("pre code").forEach((block) => {
+      hljs.highlightElement(block); // Apply syntax highlighting
     });
-  }, 0); // Delay to ensure elements are in the DOM
-  return html;
+  }, 0);
 }
 
 // Handle send button click
@@ -65,10 +103,10 @@ sendBtn.addEventListener("click", async () => {
 
     // Format and display the response from ChatGPT
     if (data.reply) {
-      displayMessage(data.reply, "ChatGPT");
+      displayMessage(data.reply, "ChatGPT", true);
       conversationHistory.push({ role: "assistant", content: data.reply });
     } else {
-      displayMessage("Sorry, something went wrong.", "ChatGPT");
+      displayMessage("Sorry, something went wrong.", "ChatGPT", true);
     }
   } catch (error) {
     // Hide the "Thinking..." message and display an error

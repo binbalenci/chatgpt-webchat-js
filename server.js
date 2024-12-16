@@ -32,7 +32,8 @@ const openai = new OpenAI({
 
 // Middleware to parse JSON and serve static files
 app.use(express.static("public"));
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // Handle user input and get ChatGPT response
 app.post("/api/chat", async (req, res) => {
